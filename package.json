@@ -1,0 +1,33 @@
+{
+  "name": "batching-fs-writestream",
+  "version": "1.0.0",
+  "description": "writes files faster by writing data to disk in chunks rather then one syscall for each call to write as in `fs.createWriteStream` except buffers chunks of data while other writes are pending to batch them to dis",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soldair/batching-fs-writestream.git"
+  },
+  "keywords": [
+    "fs",
+    "batch",
+    "fast",
+    "performance",
+    "write",
+    "stream"
+  ],
+  "author": "Ryan Day <soldair@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/soldair/batching-fs-writestream/issues"
+  },
+  "homepage": "https://github.com/soldair/batching-fs-writestream#readme",
+  "devDependencies": {
+    "tape": "^4.0.3"
+  },
+  "dependencies": {
+    "through2": "^2.0.0"
+  }
+}
