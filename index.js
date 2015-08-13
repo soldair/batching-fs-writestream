@@ -36,7 +36,17 @@ module.exports = function (file, options) {
     if (!unPause) cb()
 
   }, function (cb) {
+    
+    if(options.flush){
+      var orig = cb;
+      cb = function(){
+        options.flush(function(){
+          orig()
+        })
+      }
+    }
     drain(cb)
+
   })
 
   s._bufData = function () {
