@@ -1,5 +1,7 @@
 var through2 = require('through2')
 var fs = require('fs')
+var eos = require('end-of-stream')
+
 
 module.exports = function (file, options) {
   if (typeof options === 'string') options = {flags: options}
@@ -19,6 +21,13 @@ module.exports = function (file, options) {
   var unPause
   var writes = 0
 
+  var flushCb
+  var writeEnded
+  eos(ws,function(err){
+
+    writeEnded = true;
+  })
+
   var s = through2(function (chunk, enc, cb) {
     bufferedWrites++
 
@@ -36,29 +45,45 @@ module.exports = function (file, options) {
     if (!unPause) cb()
 
   }, function (cb) {
-    
+
+    flushCb = cb;
     if(options.flush){
-      var orig = cb;
-      cb = function(){
+      flushCb = function(){
         options.flush(function(){
-          orig()
+          cb()
         })
       }
     }
-    drain(cb)
 
+    drain()
   })
 
   s._bufData = function () {
     return {bufferedWrites: bufferedWrites, writes: writes, pauses: pauses, resumes: resumes, pending: pending, bufs: bufs, bufLen: bufLen, paused: !!unPause}
   }
 
+  // force to flowing mode because this should really be a writeable-stream only and i should fix that instead of hacking this.
+  s.on('data',function(data){})
+
   return s
+
+  function checkFlush(){
+    if(!flushCb) return;
+    if(!pending) {
+      ws.end()
+      flushCb()
+    }
+  }
 
   function drain (cb) {
     var toWrite = Buffer.concat(bufs)
     bufs = []
     bufLen = 0
+
+    if(!toWrite.length) {
+      if(cb) cb()
+      return checkFlush();
+    }
 
     pending++
     writes++
@@ -75,7 +100,7 @@ module.exports = function (file, options) {
       }
 
       if (cb) cb()
-
+      checkFlush()
     })
   }
 
